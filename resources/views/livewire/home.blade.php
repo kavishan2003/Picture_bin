@@ -2,199 +2,117 @@
 
     <!-- Header / Navigation Bar -->
     <header class="bg-gray-800  text-white p-4 shadow-lg">
-        <nav class="container mx-auto flex flex-col lg:flex-row px-[100px]  lg:items-start  justify-between items-center">
+        <nav
+            class="container mx-auto flex flex-col lg:flex-row px-[100px]  lg:items-start  justify-between items-center">
             <!-- Logo -->
-            <a href="#" class="text-3xl  text-green-400 font-['poppins']"> PictureBin</a>
+            <a href="#" class="text-3xl  text-blue-400 font-['poppins']"> PictureBin</a>
 
-            <!-- Navigation Links --> 
+            <!-- Navigation Links -->
             <div class="flex space-x-6">
-                <a href="#"
+                <a href="{{ url('/') }}" wire:navigate
                     class="text-gray-300 hover:text-white transition duration-300 ease-in-out font-medium">Home</a>
-                <a href="#"
+                <a href="{{ url('/gallery') }}" wire:navigate
                     class="text-gray-300 hover:text-white transition duration-300 ease-in-out font-medium">My Gallery</a>
             </div>
         </nav>
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-grow flex items-center justify-center p-4 h-[90vh] bg-repeat " style="background-image: url('{{ asset('images/15364609_5590897.jpg') }}') ; opacity: ; ">
-       
-       <!-- React App will be mounted here -->
-        <div id="react-app-root" class="w-full h-full flex items-center justify-center ">
-            <!-- The React component will render inside this div -->
+    <main class="flex-grow flex items-center justify-center p-4 h-[90vh] bg-repeat ">
+
+
+        <div x-data="{ isDragging: false }" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
+            @drop.prevent="
+        isDragging = false;
+        let droppedFiles = Array.from($event.dataTransfer.files);
+        @this.uploadMultiple('images', droppedFiles);
+    "
+            @paste.prevent="
+        let pastedFiles = Array.from($event.clipboardData.files);
+        if (pastedFiles.length > 0) {
+            @this.uploadMultiple('images', pastedFiles);
+        }
+    "
+            :class="{ 'border-blue-500 bg-blue-50': isDragging }"
+            class="bg-white border-1 border-blue-200 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.5)] p-10
+            hover:border-green-700 transition-all duration-300 ease-in-out
+            flex flex-col items-center justify-center text-center"
+            style="min-height: 250px; width:800px;">
+
+            {{-- Session Messages --}}
+            @if (session()->has('message'))
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+                    role="alert">
+                    <span class="block sm:inline">{{ session('message') }}</span>
+                </div>
+            @endif
+
+            @if (session()->has('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                    role="alert">
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            @endif
+
+            {{-- Limit Exceeded Alert --}}
+            @if (session()->has('limitExceeded'))
+                <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4"
+                    role="alert">
+                    <span class="block sm:inline">{{ session('limitExceeded') }}</span>
+                </div>
+            @endif
+
+            {{-- Image Uploader Section --}}
+            <div
+                class="bg-white rounded-lg shadow-md p-12 mb-6 text-center border-2 border-dashed border-blue-400 transition-colors duration-200">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                    Drag & Drop your images here, or
+                    <label for="image-upload-input"
+                        class="text-blue-600 hover:text-blue-800 cursor-pointer underline font-medium">Browse</label>
+                </h3>
+                <input type="file" id="image-upload-input" multiple wire:model="images" accept="image/*"
+                    class="hidden">
+
+                {{-- Display validation errors for the images input --}}
+                @error('images.*')
+                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                @enderror
+                @error('images')
+                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                @enderror
+
+
+                @if (count($images) > 0)
+                    <div class="selected-images mt-6 pt-4 border-t border-gray-200">
+                        <h4 class="text-lg font-semibold text-gray-700 mb-4">Selected Images (Ready for Upload):</h4>
+                        <div class="flex flex-wrap gap-4 justify-center mt-4">
+                            @foreach ($images as $index => $image)
+                                <div class="relative border border-gray-300 rounded-lg p-3 text-center w-32">
+                                    <img src="{{ $image->temporaryUrl() }}" alt="Preview"
+                                        class="max-w-full max-h-24 mx-auto mb-2 rounded-md object-cover">
+                                    <span class="text-sm truncate block">{{ $image->getClientOriginalName() }}</span>
+                                    <button type="button" wire:click="removeImage({{ $index }})"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold cursor-pointer">
+                                        &times;
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button wire:click="uploadImages" wire:loading.attr="disabled"
+                            class="mt-6 bg-blue-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span wire:loading.remove wire:target="uploadImages">Upload Images
+                                ({{ count($images) }})</span>
+                            <span wire:loading wire:target="uploadImages">Uploading...</span>
+                        </button>
+                    </div>
+                @endif
+            </div>
         </div>
-        {{-- <div class="bg-white  rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.5)] p-8 max-w-md w-full
-                    hover:border-green-700 transition-all duration-300 ease-in-out
-                    flex flex-col items-center justify-center text-center"
-            style="min-height: 180px;">
-            <!-- File Upload/Paste Area -->
-            <p class="text-gray-700 text-xl mb-2 border-5 border-dashed p-12 border-green-500 rounded-lg">
-                Paste files here or
-                <button
-                    class="text-green-600 hover:text-green-700 font-semibold underline cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 ease-in-out">
-                    Browse
-                </button>
-            </p>
-            <input type="file" id="fileInput" class="hidden" multiple>
-        </div> --}}
     </main>
-
-
-
-
-
-    
     {{-- Care about people's approval and you will be their prisoner. --}}
 </div>
-
-<!-- React and ReactDOM CDN -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel for JSX transformation in the browser (for development only) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Your React Component Code -->
-    <script type="text/babel">
-        // Main App component
-        function App() {
-            const [selectedFiles, setSelectedFiles] = React.useState([]);
-            const fileInputRef = React.useRef(null);
-
-            const handleFileChange = (e) => {
-                const files = e.dataTransfer ? e.dataTransfer.files : e.target.files;
-                processFiles(Array.from(files));
-            };
-
-            const processFiles = (newFiles) => {
-                const filesToProcess = newFiles.map(file => {
-                    return new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                            resolve({
-                                file: file,
-                                preview: reader.result,
-                                id: URL.createObjectURL(file)
-                            });
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                });
-
-                Promise.all(filesToProcess).then(processedFiles => {
-                    const uniqueNewFiles = processedFiles.filter(
-                        (newFile) => !selectedFiles.some((existingFile) => existingFile.id === newFile.id)
-                    );
-                    setSelectedFiles((prevFiles) => [...prevFiles, ...uniqueNewFiles]);
-                });
-            };
-
-            const handleDrop = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.currentTarget.classList.remove('border-green-500', 'border-dashed');
-                handleFileChange(e);
-            };
-
-            const handleDragOver = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.currentTarget.classList.add('border-green-500', 'border-dashed');
-            };
-
-            const handleDragLeave = (e) => {
-                e.stopPropagation();
-                e.currentTarget.classList.remove('border-green-500', 'border-dashed');
-            };
-
-            const handleBrowseClick = () => {
-                fileInputRef.current.click();
-            };
-
-            const handleDeleteImage = (idToDelete) => {
-                setSelectedFiles((prevFiles) =>
-                    prevFiles.filter((file) => file.id !== idToDelete)
-                );
-            };
-
-            return (
-                <div className="min-h-full w-full flex items-center justify-center p-4 font-sans antialiased">
-                    <div className="bg-white p-8 rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.5)] w-full max-w-4xl">
-                        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Image Uploader</h1>
-
-                        {/* Drop zone for files */}
-                        <div
-                            className="border-2 border-gray-300 border-dotted rounded-lg p-6 mb-8 text-center cursor-pointer transition-all duration-300 hover:border-blue-500"
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onClick={handleBrowseClick}
-                        >
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                ref={fileInputRef}
-                                className="hidden"
-                            />
-                            <p className="text-gray-600 text-lg">
-                                Drag & Drop your images here, or <span className="text-blue-600 font-semibold cursor-pointer">Browse</span>
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">(Click or drag files onto this area)</p>
-                        </div>
-
-                        {/* Display selected image previews */}
-                        {selectedFiles.length > 0 && (
-                            <div className="mb-8">
-                                <h2 className="text-xl font-semibold text-gray-700 mb-4">Selected Images:</h2>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {selectedFiles.map((fileData) => (
-                                        <div
-                                            key={fileData.id}
-                                            className="relative group bg-gray-50 rounded-lg overflow-hidden shadow-md transition-all duration-300 hover:shadow-lg"
-                                        >
-                                            <img
-                                                src={fileData.preview}
-                                                alt={fileData.file.name}
-                                                className="w-full h-32 object-cover rounded-t-lg"
-                                                onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/128x128/cccccc/444444?text=No+Preview"; }}
-                                            />
-                                            {/* Delete button */}
-                                            <button
-                                                onClick={() => handleDeleteImage(fileData.id)}
-                                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
-                                                title="Delete image"
-                                            >
-                                                X
-                                            </button>
-                                            <div className="p-2 text-sm text-gray-700 truncate">
-                                                {fileData.file.name}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Upload Button (placeholder, actual upload logic not included) */}
-                        {selectedFiles.length > 0 && (
-                            <div className="text-center">
-                                <button className="bg-blue-600 text-white px-8 py-3 rounded-xl shadow-md hover:bg-blue-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-                                    Upload Images ({selectedFiles.length})
-                                </button>
-                            </div>
-                        )}
-
-                        {selectedFiles.length === 0 && (
-                            <p className="text-center text-gray-500 mt-4">No images selected yet.</p>
-                        )}
-                    </div>
-                </div>
-            );
-        }
-
-        // Render the React component into the 'react-app-root' div
-        const container = document.getElementById('react-app-root');
-        const root = ReactDOM.createRoot(container);
-        root.render(<App />);
-    </script>
+<script>
+    function triggerFileInput() {
+        document.getElementById('fileInput').click();
+    }
+</script>
