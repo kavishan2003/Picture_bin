@@ -24,11 +24,30 @@ class Gallery extends Component
         $this->images = Images::latest()->get(); // Example: get all images, ordered by creation date (newest first)
         // $this->images = Image::paginate(12); // Example: for pagination
     }
-    public function getImages() {}
+    public function deleteImage($id)
+    {
+        // 1. Find the image record
+        $image = Images::find($id);
+
+        if ($image) {
+            // 2. Update the 'is_deleted' column to true
+            $image->update(['is_deleted' => true]);
+
+            // 3. Re-fetch the images to update the UI (showing only non-deleted images)
+            $this->images = Images::where('is_deleted', false)->latest()->get();
+
+            session()->flash('message', 'Image moved to trash successfully!');
+        } else {
+            session()->flash('error', 'Image not found!');
+        }
+    }
+
+
 
 
     public function render()
     {
+        $this->images = Images::where('is_deleted', false)->latest()->get();
         return view('livewire.gallery');
     }
 }

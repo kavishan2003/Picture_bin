@@ -41,14 +41,16 @@
 
             {{-- Session Messages --}}
             @if (session()->has('message'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 6000)" x-show="show" x-transition:leave.duration.500ms
+                    class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
                     role="alert">
                     <span class="block sm:inline">{{ session('message') }}</span>
                 </div>
             @endif
 
             @if (session()->has('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 6000)" x-show="show" x-transition:leave.duration.500ms
+                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
                     role="alert">
                     <span class="block sm:inline">{{ session('error') }}</span>
                 </div>
@@ -56,7 +58,8 @@
 
             {{-- Limit Exceeded Alert --}}
             @if (session()->has('limitExceeded'))
-                <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4"
+                <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 6000)" x-show="show" x-transition:leave.duration.500ms
+                    class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4"
                     role="alert">
                     <span class="block sm:inline">{{ session('limitExceeded') }}</span>
                 </div>
@@ -66,7 +69,7 @@
             <div
                 class="bg-white rounded-lg shadow-md p-12 mb-6 text-center border-2 border-dashed border-blue-400 transition-colors duration-200">
                 <h3 class="text-xl font-semibold text-gray-700 mb-4">
-                    Drag & Drop your images here, or
+                    Drag & Drop your images here, <br> copy (ctrl + c) & paste (ctrl + v) or
                     <label for="image-upload-input"
                         class="text-blue-600 hover:text-blue-800 cursor-pointer underline font-medium">Browse</label>
                 </h3>

@@ -1,0 +1,27 @@
+<svg width="128" height="128" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Define a more vibrant linear gradient for a modern, attractive look -->
+    <linearGradient id="pictureBinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4CAF50" /> <!-- Brighter Green -->
+      <stop offset="50%" stop-color="#2196F3" /> <!-- Vibrant Blue -->
+      <stop offset="100%" stop-color="#FFC107" /> <!-- Sunny Yellow -->
+    </linearGradient>
+
+    <!-- Define a subtle shadow filter for depth -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.2)" />
+    </filter>
+  </defs>
+
+  <!-- Background shape hinting at a container/bin -->
+  <rect x="2" y="2" width="20" height="20" rx="4" fill="url(#pictureBinGradient)" filter="url(#shadow)"/>
+
+  <!-- Letter 'P' -->
+  <text x="3" y="18" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">P</text>
+
+  <!-- Letter 'B' -->
+  <text x="11" y="18" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFFFFF">B</text>
+
+  <!-- A subtle graphic element, perhaps a small swoosh or dot, adding dynamism -->
+  <circle cx="19" cy="5" r="1.5" fill="rgba(255,255,255,0.6)"/>
+</svg>

@@ -15,5 +15,6 @@ class Images extends Model
         'image_path',
         'original_name',
         'size',
+        'is_deleted',
     ];
 }
