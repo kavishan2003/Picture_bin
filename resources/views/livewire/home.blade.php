@@ -96,19 +96,19 @@
                         <h4 class="text-lg font-semibold text-gray-700 mb-4">Selected Images (Ready for Upload):</h4>
                         <div class="flex flex-wrap gap-4 justify-center mt-4">
                             @foreach ($images as $index => $image)
-                                <div class="relative border border-gray-300 rounded-lg p-3 text-center w-32">
+                                <div class="relative border border-gray-300 rounded-lg p-4 text-center w-48 shadow-md">
                                     <img src="{{ $image->temporaryUrl() }}" alt="Preview"
-                                        class="max-w-full max-h-24 mx-auto mb-2 rounded-md object-cover">
+                                        class="w-full h-32 object-cover rounded-md mb-2">
                                     <span class="text-sm truncate block">{{ $image->getClientOriginalName() }}</span>
                                     <button type="button" wire:click="removeImage({{ $index }})"
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold cursor-pointer">
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold cursor-pointer shadow">
                                         &times;
                                     </button>
                                 </div>
                             @endforeach
                         </div>
                         <button wire:click="uploadImages" wire:loading.attr="disabled"
-                            class="mt-6 bg-blue-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="mt-6 bg-blue-600 hover:bg-green-700 cursor-pointer text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed">
                             <span wire:loading.remove wire:target="uploadImages">Upload Images
                                 ({{ count($images) }})</span>
                             <span wire:loading wire:target="uploadImages">Uploading...</span>
@@ -143,52 +143,17 @@
                     </div>
                 </div>
             @endif
-            {{-- @foreach ($images as $image)
-                {{-- Link Display and Copy Button 
-                <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-4"
-                    x-data="{ copied: false }">
-                    <p class="flex-grow text-sm truncate text-gray-700 dark:text-gray-300">
-                        {{ $image->fake_path }}
-                    </p>
-                    <button
-                        @click="
-                        navigator.clipboard.writeText('{{ $image->fake_path }}');
-                        copied = true;
-                        setTimeout(() => copied = false, 2000);
-                    "
-                        class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                        title="Copy link to clipboard">
-                        <span x-show="!copied">
-                            {{-- Copy Icon (Heroicons outline: clipboard) 
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
-                                </path>
-                            </svg>
-                        </span>
-                        <span x-show="copied" class="text-green-500">
-                            {{-- Checkmark Icon (Heroicons solid: check-circle) 
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                        </span>
-                    </button>
-                </div>
-            @endforeach --}}
+
             {{-- cloud fare --}}
-            <form method="post" id="check-form">
-                @csrf
-                <div class="mb-6">
-                    <div class="bg-gray-50 text-gray-500 text-center border border-gray-200 rounded-xl p-5 cf-turnstile flex items-center justify-center"
-                        data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}">
-                        {{-- <p class="text-sm">Please complete the captcha</p> --}}
-                    </div>
+            <input type="hidden" id="cf-turnstile-response" wire:model.defer="turnstileToken">
+            <div class="mb-6">
+                <div class="bg-gray-50 text-gray-500 text-center border border-gray-200 rounded-xl p-5 cf-turnstile flex items-center justify-center"
+                    data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}"
+                    data-callback="turnstileCallback" data-size="normal">
+                    {{-- <p class="text-sm">Please complete the captcha</p> --}}
                 </div>
-            </form>
+            </div>
+
         </div>
     </main>
     {{-- Care about people's approval and you will be their prisoner. --}}
@@ -199,3 +164,45 @@
     }
 </script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+    function turnstileCallback(token) {
+        @this.set('turnstileToken', token);
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('image-upload-input');
+        const maxFileSizeMB = 2;
+        const maxFilesAllowed = 6;
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+
+        fileInput.addEventListener('change', function(event) {
+            const files = Array.from(event.target.files);
+
+            if (files.length > maxFilesAllowed) {
+                alert(`You can upload a maximum of ${maxFilesAllowed} images.`);
+                fileInput.value = ''; // Clear selection
+                return;
+            }
+
+            for (let file of files) {
+                const isValidType = allowedTypes.includes(file.type);
+                const isValidSize = file.size <= maxFileSizeMB * 1024 * 1024;
+
+                if (!isValidType) {
+                    alert(
+                        `File "${file.name}" is not a supported format. Only PNG and JPG are allowed.`
+                        );
+                    fileInput.value = '';
+                    return;
+                }
+
+                if (!isValidSize) {
+                    alert(`File "${file.name}" exceeds the 2MB size limit.`);
+                    fileInput.value = '';
+                    return;
+                }
+            }
+        });
+    });
+</script>

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('original_name')->nullable();
             $table->string('image_path');
             $table->string('fake_path');
+            $table->string('hash');
             $table->unsignedBigInteger('size')->nullable();
             $table->boolean('is_deleted')->default(false);
         });

@@ -14,6 +14,7 @@ class Images extends Model
         'id',
         'image_path',
         'fake_path',
+        'hash',
         'original_name',
         'size',
         'is_deleted',

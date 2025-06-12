@@ -6,6 +6,7 @@ use App\Models\Images;
 use Livewire\Component;
 use Illuminate\Support\Str;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 // use Intervention\Image\ImageManagerStatic as ImageIntervention; 
@@ -17,33 +18,15 @@ class Home extends Component
     public $uploadedImages = []; // To hold paths/information of successfully uploaded images
     public $maxImages = 6; // Define the maximum number of images allowed
     public $limitReached = false; // State to inform the UI if the limit is reached        
-
+    public $turnstileToken;
     protected $rules = [
         'images.*' => 'image|max:2048', // 2MB Max, image type
     ];
 
     public function updatedImages()
     {
-        // Reset limitReached state before validation/checks
+        // // Reset limitReached state before validation/checks
         // $this->limitReached = false;
-
-        // // 1. Validate individual files for type/size
-        // try {
-        //     $this->validate([
-        //         'images.*' => 'image|max:2048',
-        //     ]);
-        // } catch (ValidationException $e) {
-        //     // If some files are invalid, filter them out and re-index the array
-        //     $validFiles = collect($this->images)->filter(function ($image, $key) use ($e) {
-        //         return !isset($e->errors()['images.' . $key]);
-        //     })->values()->toArray();
-
-        //     // Set the images property to only include valid files
-        //     $this->images = $validFiles;
-
-        //     // Flash a generic error for individual file issues
-        //     session()->flash('error', 'Some selected files were not valid images or exceeded size limits.');
-        // }
 
         // // 2. Enforce the total image limit
         // if (count($this->images) > $this->maxImages) {
@@ -52,12 +35,24 @@ class Home extends Component
         //     $this->limitReached = true;
         //     session()->flash('limitExceeded', 'You can only select a maximum of ' . $this->maxImages . ' images at a time.');
         // }
-
-        // You might want to do some client-side preview logic here if not using a separate JS library
     }
 
     public function uploadImages()
     {
+
+        // Verify Turnstile
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => config('services.turnstile.secret'),
+            'response' => $this->turnstileToken,
+            'remoteip' => request()->ip(),
+        ]);
+
+        if (!$response->json('success')) {
+            session()->flash('error', 'Captcha verification failed. Please try again.');
+            return;
+        }
+
+
         try {
             $this->validate(); // Validate all selected images
 
@@ -71,14 +66,15 @@ class Home extends Component
                 $image_path = Storage::disk('s3')->url($path);
 
                 $fake_hash = md5($image_path);
-                
-                $fake_path = url(path: 'Picture-Bin/' . $fake_hash);
+
+                $fake_path = url(path: 'hash/' . $fake_hash);
 
 
                 // Add the path to uploadedImages array
                 $this->uploadedImages[] = [
                     'name' => $image->getClientOriginalName(),
                     // 'path' => Storage::url($path), 
+                    
                     'path' => Storage::disk('s3')->url($path),
                     'fake_path' =>  $fake_path,
                     'original_path' => $path, // Store the actual storage path for removal
@@ -90,6 +86,7 @@ class Home extends Component
 
                     // 'image_path' => Storage::url($path), 
                     'image_path' => $image_path,
+                    'hash' => $fake_hash,
                     'fake_path' =>  $fake_path,
                     'original_name' => $image->getClientOriginalName(),
                     'size' => $image->getSize(),
@@ -141,7 +138,7 @@ class Home extends Component
     {
         return view('livewire.home', [
             'images' => Images::latest()->get(),
-            
+
 
         ]);
     }

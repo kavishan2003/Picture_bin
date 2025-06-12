@@ -12,4 +12,4 @@ Route::get('/', function () {
 Route::get( '/gallery',Gallery::class);
 Route::post( '/gallery',Gallery::class);
 
-Route::get('/Picture-Bin/{hash}',[ImageController::class,'getImage']);
+Route::get('/hash/{hash}',[ImageController::class,'getImage']);
