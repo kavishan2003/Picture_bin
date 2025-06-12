@@ -13,6 +13,7 @@ class Images extends Model
     protected $fillable = [
         'id',
         'image_path',
+        'fake_path',
         'original_name',
         'size',
         'is_deleted',

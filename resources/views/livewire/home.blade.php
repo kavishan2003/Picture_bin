@@ -1,18 +1,20 @@
 <div>
 
     <!-- Header / Navigation Bar -->
+
     <header class="bg-gray-800  text-white p-4 shadow-lg">
         <nav
             class="container mx-auto flex flex-col lg:flex-row px-[100px]  lg:items-start  justify-between items-center">
             <!-- Logo -->
-            <a href="#" class="text-3xl  text-blue-400 font-['poppins']"> PictureBin</a>
+            <a href="{{ url('/') }}" class="text-3xl  text-blue-400 font-['poppins']"> PictureBin</a>
 
             <!-- Navigation Links -->
             <div class="flex space-x-6">
                 <a href="{{ url('/') }}" wire:navigate
-                    class="text-gray-300 hover:text-white transition duration-300 ease-in-out font-medium">Home</a>
+                    class="text-gray-300 hover:text-blue-300 transition duration-300 ease-in-out font-medium rounded-md hover:bg-gray-700 p-2">Home</a>
                 <a href="{{ url('/gallery') }}" wire:navigate
-                    class="text-gray-300 hover:text-white transition duration-300 ease-in-out font-medium">My Gallery</a>
+                    class="text-gray-300 hover:text-blue-300 transition duration-300 ease-in-out font-medium rounded-md hover:bg-gray-700 p-2">My
+                    Gallery</a>
             </div>
         </nav>
     </header>
@@ -48,6 +50,8 @@
                 </div>
             @endif
 
+
+
             @if (session()->has('error'))
                 <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 6000)" x-show="show" x-transition:leave.duration.500ms
                     class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
@@ -55,6 +59,7 @@
                     <span class="block sm:inline">{{ session('error') }}</span>
                 </div>
             @endif
+
 
             {{-- Limit Exceeded Alert --}}
             @if (session()->has('limitExceeded'))
@@ -85,6 +90,7 @@
                 @enderror
 
 
+
                 @if (count($images) > 0)
                     <div class="selected-images mt-6 pt-4 border-t border-gray-200">
                         <h4 class="text-lg font-semibold text-gray-700 mb-4">Selected Images (Ready for Upload):</h4>
@@ -110,11 +116,79 @@
                     </div>
                 @endif
             </div>
+            @if (count($uploadedImages) > 0)
+                <div class="mt-10 w-full max-w-3xl mx-auto">
+                    <h4 class="text-lg font-semibold text-gray-700 mb-4 text-center">Uploaded Images & Shareable URLs
+                    </h4>
+                    <div class="space-y-4">
+                        @foreach ($uploadedImages as $index => $img)
+                            <div class="flex items-center justify-between bg-gray-100 rounded-lg p-3 shadow-sm relative"
+                                x-data="{ copied: false }">
+                                <div class="truncate text-sm text-gray-800 flex-1 mr-4">
+                                    {{ $img['fake_path'] }}
+                                </div>
+                                <button
+                                    @click="navigator.clipboard.writeText('{{ $img['fake_path'] }}'); copied = true; setTimeout(() => copied = false, 2000);"
+                                    class="text-blue-600 hover:text-green-600 text-sm font-semibold px-3 py-1 rounded transition"
+                                    title="Copy to clipboard">
+                                    <template x-if="!copied">
+                                        <span>Copy</span>
+                                    </template>
+                                    <template x-if="copied">
+                                        <span class="text-green-500">Copied!</span>
+                                    </template>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+            {{-- @foreach ($images as $image)
+                {{-- Link Display and Copy Button 
+                <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-4"
+                    x-data="{ copied: false }">
+                    <p class="flex-grow text-sm truncate text-gray-700 dark:text-gray-300">
+                        {{ $image->fake_path }}
+                    </p>
+                    <button
+                        @click="
+                        navigator.clipboard.writeText('{{ $image->fake_path }}');
+                        copied = true;
+                        setTimeout(() => copied = false, 2000);
+                    "
+                        class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                        title="Copy link to clipboard">
+                        <span x-show="!copied">
+                            {{-- Copy Icon (Heroicons outline: clipboard) 
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                </path>
+                            </svg>
+                        </span>
+                        <span x-show="copied" class="text-green-500">
+                            {{-- Checkmark Icon (Heroicons solid: check-circle) 
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            @endforeach --}}
             {{-- cloud fare --}}
-            <div class="bg-gray-50 text-gray-500 text-center border border-gray-200 rounded-xl p-5 cf-turnstile flex items-center justify-center"
-                data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}">
-                {{-- <p class="text-sm">Please complete the captcha</p> --}}
-            </div>
+            <form method="post" id="check-form">
+                @csrf
+                <div class="mb-6">
+                    <div class="bg-gray-50 text-gray-500 text-center border border-gray-200 rounded-xl p-5 cf-turnstile flex items-center justify-center"
+                        data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}">
+                        {{-- <p class="text-sm">Please complete the captcha</p> --}}
+                    </div>
+                </div>
+            </form>
         </div>
     </main>
     {{-- Care about people's approval and you will be their prisoner. --}}
@@ -124,3 +198,4 @@
         document.getElementById('fileInput').click();
     }
 </script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>

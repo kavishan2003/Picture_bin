@@ -64,16 +64,22 @@ class Home extends Component
             foreach ($this->images as $image) {
                 // Generate a unique filename
                 $filename = md5($image->getClientOriginalName() . time()) . '.' . $image->getClientOriginalExtension();
-                
-                // Store the image in the 'public/uploads' directory
-                $path = Storage::disk('s3')->put('uploads/'.$filename, $image, 'public');
 
-               
+                // Store the image in the 'public/uploads' directory
+                $path = Storage::disk('s3')->put('uploads/' . $filename, $image, 'public');
+
+                $image_path = Storage::disk('s3')->url($path);
+
+                $fake_hash = md5($image_path);
+                $fake_path = url('Picture-Bin/' . $fake_hash);
+
+
                 // Add the path to uploadedImages array
                 $this->uploadedImages[] = [
                     'name' => $image->getClientOriginalName(),
                     // 'path' => Storage::url($path), 
                     'path' => Storage::disk('s3')->url($path),
+                    'fake_path' =>  $fake_path,
                     'original_path' => $path, // Store the actual storage path for removal
                     'size' => $image->getSize(),
                 ];
@@ -82,7 +88,8 @@ class Home extends Component
                 Images::create([
 
                     // 'image_path' => Storage::url($path), 
-                    'image_path' => Storage::disk('s3')->url($path),
+                    'image_path' => $image_path,
+                    'fake_path' =>  $fake_path,
                     'original_name' => $image->getClientOriginalName(),
                     'size' => $image->getSize(),
                 ]);
@@ -90,6 +97,8 @@ class Home extends Component
 
             // Clear the temporary images after successful upload
             $this->images = [];
+            // dd($image);
+
 
             session()->flash('message', 'Images uploaded successfully!');
         } catch (ValidationException $e) {
@@ -97,6 +106,7 @@ class Home extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred during upload: ' . $e->getMessage());
         }
+        // return redirect()->back()->with('alert', $this->images);
     }
 
     public function removeImage($index)
@@ -128,7 +138,10 @@ class Home extends Component
 
     public function render()
     {
+        return view('livewire.home', [
+            'images' => Images::latest()->get(),
+            
 
-        return view('livewire.home');
+        ]);
     }
 }

@@ -24,22 +24,22 @@
  <body class="max-h-screen flex flex-col">
 
     
-        <header class="bg-gray-800  text-white p-4 shadow-lg">
-            <nav
-                class="container mx-auto flex flex-col lg:flex-row px-[100px]  lg:items-start  justify-between items-center">
-                <!-- Logo -->
-                <a href="#" class="text-3xl  text-blue-400 font-['poppins']"> PictureBin</a>
+         <header class="bg-gray-800  text-white p-4 shadow-lg">
+        <nav
+            class="container mx-auto flex flex-col lg:flex-row px-[100px]  lg:items-start  justify-between items-center">
+            <!-- Logo -->
+            <a href="{{ url('/') }}" wire:navigate class="text-3xl  text-blue-400 font-['poppins']"> PictureBin</a>
 
-                <!-- Navigation Links -->
-                <div class="flex space-x-6">
-                    <a href="{{ url('/') }}" wire:navigate
-                        class="text-gray-300 hover:text-white transition duration-300 ease-in-out font-medium">Home</a>
-                    <a href="{{ url('/gallery') }}" wire:navigate
-                        class="text-gray-300 hover:text-white transition duration-300 ease-in-out font-medium">My
-                        Gallery</a>
-                </div>
-            </nav>
-        </header>
+            <!-- Navigation Links -->
+            <div class="flex space-x-6">
+                <a href="{{ url('/') }}" wire:navigate
+                    class="text-gray-300 hover:text-blue-300 transition duration-300 ease-in-out font-medium rounded-md hover:bg-gray-700 p-2">Home</a>
+                <a href="{{ url('/gallery') }}" wire:navigate
+                    class="text-gray-300 hover:text-blue-300 transition duration-300 ease-in-out font-medium rounded-md hover:bg-gray-700 p-2">My
+                    Gallery</a>
+            </div>
+        </nav>
+    </header>
         {{ $slot }}
         </div>
 

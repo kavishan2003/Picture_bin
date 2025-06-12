@@ -16,6 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('original_name')->nullable();
             $table->string('image_path');
+            $table->string('fake_path');
             $table->unsignedBigInteger('size')->nullable();
             $table->boolean('is_deleted')->default(false);
         });

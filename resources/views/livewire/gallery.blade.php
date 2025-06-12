@@ -20,7 +20,7 @@
 
         @if ($images->isEmpty())
             <div
-                class="flex flex-col items-center justify-center p-10 bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 min-h-[200px]">
+                class="flex flex-col h-[95vh]  items-center justify-center p-10 bg-white dark:bg-gray-800  shadow-md border border-gray-200 dark:border-gray-700 min-h-[200px]">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                     stroke="currentColor" class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -69,11 +69,11 @@
                             <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 p-2 rounded-md mb-4"
                                 x-data="{ copied: false }">
                                 <p class="flex-grow text-sm truncate text-gray-700 dark:text-gray-300">
-                                    {{ $image->image_path }}
+                                    {{ $image->fake_path }}
                                 </p>
                                 <button
                                     @click="
-                        navigator.clipboard.writeText('{{ $image->image_path }}');
+                        navigator.clipboard.writeText('{{ $image->fake_path }}');
                         copied = true;
                         setTimeout(() => copied = false, 2000);
                     "
@@ -104,16 +104,16 @@
 
 
                             <div class="mt-auto">
-                                <button type="button" {{-- Important for Alpine.js buttons within forms to prevent accidental form submission --}} x-data="{}"
-                                    {{-- Initialize Alpine.js scope if not already initialized by a parent element --}}
+                                <button type="button"
+                                    class="w-full bg-gradient-to-r border-2 border-red-500 from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex items-center justify-center space-x-2"{{-- Important for Alpine.js buttons within forms to prevent accidental form submission --}}
+                                    x-data="{}" {{-- Initialize Alpine.js scope if not already initialized by a parent element --}}
                                     @click="
                                             if (confirm('Are you sure you want to delete this image?')) {
                                                 $wire.deleteImage({{ $image->id }});
                                             } else {
                                                 // Do nothing if user cancels
                                             }
-                                        "
-                                    class="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex items-center justify-center space-x-2">
+                                        ">
                                     {{-- SVG Delete Icon (Heroicons outline: trash) --}}
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                         xmlns="http://www.w3.org/2000/svg">

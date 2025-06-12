@@ -9,3 +9,5 @@ Route::get('/', function () {
 
 
 Route::get( '/gallery',Gallery::class);
+Route::post( '/gallery',Gallery::class);
+
