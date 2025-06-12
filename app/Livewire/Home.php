@@ -25,34 +25,24 @@ class Home extends Component
 
     public function updatedImages()
     {
-        // // Reset limitReached state before validation/checks
-        // $this->limitReached = false;
-
-        // // 2. Enforce the total image limit
-        // if (count($this->images) > $this->maxImages) {
-        //     // Trim the array to the maximum allowed number of images
-        //     $this->images = array_slice($this->images, 0, $this->maxImages);
-        //     $this->limitReached = true;
-        //     session()->flash('limitExceeded', 'You can only select a maximum of ' . $this->maxImages . ' images at a time.');
-        // }
+        //
     }
-
+    
     public function uploadImages()
     {
-
+        
         // Verify Turnstile
         $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
             'secret' => config('services.turnstile.secret'),
             'response' => $this->turnstileToken,
             'remoteip' => request()->ip(),
         ]);
-
+    
         if (!$response->json('success')) {
             session()->flash('error', 'Captcha verification failed. Please try again.');
             return;
         }
-
-
+        
         try {
             $this->validate(); // Validate all selected images
 
@@ -67,14 +57,14 @@ class Home extends Component
 
                 $fake_hash = md5($image_path);
 
-                $fake_path = url(path: 'hash/' . $fake_hash);
+                $fake_path = url(config('app.image_url_prefix') . $fake_hash);
 
 
                 // Add the path to uploadedImages array
                 $this->uploadedImages[] = [
                     'name' => $image->getClientOriginalName(),
                     // 'path' => Storage::url($path), 
-                    
+
                     'path' => Storage::disk('s3')->url($path),
                     'fake_path' =>  $fake_path,
                     'original_path' => $path, // Store the actual storage path for removal
