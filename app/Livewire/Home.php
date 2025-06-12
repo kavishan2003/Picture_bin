@@ -25,33 +25,33 @@ class Home extends Component
     public function updatedImages()
     {
         // Reset limitReached state before validation/checks
-        $this->limitReached = false;
+        // $this->limitReached = false;
 
-        // 1. Validate individual files for type/size
-        try {
-            $this->validate([
-                'images.*' => 'image|max:2048',
-            ]);
-        } catch (ValidationException $e) {
-            // If some files are invalid, filter them out and re-index the array
-            $validFiles = collect($this->images)->filter(function ($image, $key) use ($e) {
-                return !isset($e->errors()['images.' . $key]);
-            })->values()->toArray();
+        // // 1. Validate individual files for type/size
+        // try {
+        //     $this->validate([
+        //         'images.*' => 'image|max:2048',
+        //     ]);
+        // } catch (ValidationException $e) {
+        //     // If some files are invalid, filter them out and re-index the array
+        //     $validFiles = collect($this->images)->filter(function ($image, $key) use ($e) {
+        //         return !isset($e->errors()['images.' . $key]);
+        //     })->values()->toArray();
 
-            // Set the images property to only include valid files
-            $this->images = $validFiles;
+        //     // Set the images property to only include valid files
+        //     $this->images = $validFiles;
 
-            // Flash a generic error for individual file issues
-            session()->flash('error', 'Some selected files were not valid images or exceeded size limits.');
-        }
+        //     // Flash a generic error for individual file issues
+        //     session()->flash('error', 'Some selected files were not valid images or exceeded size limits.');
+        // }
 
-        // 2. Enforce the total image limit
-        if (count($this->images) > $this->maxImages) {
-            // Trim the array to the maximum allowed number of images
-            $this->images = array_slice($this->images, 0, $this->maxImages);
-            $this->limitReached = true;
-            session()->flash('limitExceeded', 'You can only select a maximum of ' . $this->maxImages . ' images at a time.');
-        }
+        // // 2. Enforce the total image limit
+        // if (count($this->images) > $this->maxImages) {
+        //     // Trim the array to the maximum allowed number of images
+        //     $this->images = array_slice($this->images, 0, $this->maxImages);
+        //     $this->limitReached = true;
+        //     session()->flash('limitExceeded', 'You can only select a maximum of ' . $this->maxImages . ' images at a time.');
+        // }
 
         // You might want to do some client-side preview logic here if not using a separate JS library
     }
@@ -71,7 +71,8 @@ class Home extends Component
                 $image_path = Storage::disk('s3')->url($path);
 
                 $fake_hash = md5($image_path);
-                $fake_path = url('Picture-Bin/' . $fake_hash);
+                
+                $fake_path = url(path: 'Picture-Bin/' . $fake_hash);
 
 
                 // Add the path to uploadedImages array

@@ -2,6 +2,7 @@
 
 use App\Livewire\Gallery;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ImageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -11,3 +12,4 @@ Route::get('/', function () {
 Route::get( '/gallery',Gallery::class);
 Route::post( '/gallery',Gallery::class);
 
+Route::get('/Picture-Bin/{hash}',[ImageController::class,'getImage']);
