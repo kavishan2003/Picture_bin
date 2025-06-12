@@ -64,27 +64,28 @@ class Home extends Component
             foreach ($this->images as $image) {
                 // Generate a unique filename
                 $filename = md5($image->getClientOriginalName() . time()) . '.' . $image->getClientOriginalExtension();
-
+                
                 // Store the image in the 'public/uploads' directory
-                $path = $image->storeAs('uploads', $filename, 'public');
+                $path = Storage::disk('s3')->put('uploads/'.$filename, $image, 'public');
 
+               
                 // Add the path to uploadedImages array
                 $this->uploadedImages[] = [
                     'name' => $image->getClientOriginalName(),
-                    'path' => Storage::url($path), // Get the public URL
+                    // 'path' => Storage::url($path), 
+                    'path' => Storage::disk('s3')->url($path),
                     'original_path' => $path, // Store the actual storage path for removal
                     'size' => $image->getSize(),
                 ];
 
                 // Create a new record in the 'images' table
                 Images::create([
-                  
-                    'image_path' => Storage::url($path), // Save the public URL
+
+                    // 'image_path' => Storage::url($path), 
+                    'image_path' => Storage::disk('s3')->url($path),
                     'original_name' => $image->getClientOriginalName(),
                     'size' => $image->getSize(),
                 ]);
-
-
             }
 
             // Clear the temporary images after successful upload

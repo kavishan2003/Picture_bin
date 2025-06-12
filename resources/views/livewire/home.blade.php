@@ -110,6 +110,11 @@
                     </div>
                 @endif
             </div>
+            {{-- cloud fare --}}
+            <div class="bg-gray-50 text-gray-500 text-center border border-gray-200 rounded-xl p-5 cf-turnstile flex items-center justify-center"
+                data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}">
+                {{-- <p class="text-sm">Please complete the captcha</p> --}}
+            </div>
         </div>
     </main>
     {{-- Care about people's approval and you will be their prisoner. --}}
