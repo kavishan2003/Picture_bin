@@ -2,9 +2,11 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
 use App\Models\Images;
 use Livewire\Component;
 use Illuminate\Support\Str;
+use App\Models\UploadAttempt;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -27,22 +29,34 @@ class Home extends Component
     {
         //
     }
-    
+
     public function uploadImages()
     {
-        
+        $ip = request()->ip();
+        $today = Carbon::today();
+
+        $attempt = UploadAttempt::firstOrCreate(
+            ['ip_address' => $ip, 'date' => $today],
+            ['upload_count' => 0]
+        );
+
+        if ($attempt->upload_count >= 5) { // limit = 5 uploads/day
+            session()->flash('error', 'Upload limit reached for today.');
+            return;
+        }
+
         // Verify Turnstile
         $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
             'secret' => config('services.turnstile.secret'),
             'response' => $this->turnstileToken,
             'remoteip' => request()->ip(),
         ]);
-    
+
         if (!$response->json('success')) {
             session()->flash('error', 'Captcha verification failed. Please try again.');
             return;
         }
-        
+
         try {
             $this->validate(); // Validate all selected images
 
@@ -86,7 +100,7 @@ class Home extends Component
             // Clear the temporary images after successful upload
             $this->images = [];
             // dd($image);
-
+            $attempt->increment('upload_count');
 
             session()->flash('message', 'Images uploaded successfully!');
         } catch (ValidationException $e) {
