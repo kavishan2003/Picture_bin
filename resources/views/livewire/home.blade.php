@@ -36,11 +36,24 @@
         }
     "
             :class="{ 'border-blue-500 bg-blue-50': isDragging }"
-            class="bg-white border-1 border-blue-200 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.5)] p-10
-            hover:border-green-700 transition-all duration-300 ease-in-out
-            flex flex-col items-center justify-center text-center"
+            class="relative bg-white border-1 border-blue-200 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.5)] p-10
+           hover:border-green-700 transition-all duration-300 ease-in-out
+           flex flex-col items-center justify-center text-center"
             style="min-height: 250px; width:800px;">
 
+            <!-- Overlay shown during drag -->
+            <div x-show="isDragging" x-transition
+                class="absolute inset-0 z-10 flex items-center justify-center bg-blue-100 bg-opacity-80 rounded-lg pointer-events-none">
+                <div class="text-blue-800 text-2xl font-bold animate-bounce">
+                    📥 Drop your images here
+                </div>
+            </div>
+
+            <!-- Main drop content -->
+            <div class="z-0">
+                <p class="text-gray-600">Drag and drop images here or paste them from your clipboard.</p>
+                <p class="text-sm text-gray-400 mt-2">Supported formats: JPG, PNG, GIF, etc.</p>
+            </div>
             {{-- Session Messages --}}
             @if (session()->has('message'))
                 <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 6000)" x-show="show" x-transition:leave.duration.500ms
@@ -85,8 +98,8 @@
                 </h3>
 
                 {{-- The only real file input (Livewire still binds to it) --}}
-                <input x-ref="input" id="image-upload-input" type="file"  accept="image/*"
-                    wire:model.defer="images" @change="handleChange" class="hidden">
+                <input x-ref="input" id="image-upload-input" type="file" accept="image/*" wire:model.defer="images"
+                    @change="handleChange" class="hidden">
 
                 {{-- ***CLIENT‑SIDE*** previews – never reconciled by Livewire --}}
                 <div class="mt-6 flex flex-wrap gap-4 justify-center" wire:ignore x-cloak>
