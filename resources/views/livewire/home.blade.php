@@ -85,7 +85,7 @@
                 </h3>
 
                 {{-- The only real file input (Livewire still binds to it) --}}
-                <input x-ref="input" id="image-upload-input" type="file" multiple accept="image/*"
+                <input x-ref="input" id="image-upload-input" type="file"  accept="image/*"
                     wire:model.defer="images" @change="handleChange" class="hidden">
 
                 {{-- ***CLIENT‑SIDE*** previews – never reconciled by Livewire --}}
@@ -106,6 +106,7 @@
 
                 {{-- UPLOAD button appears only when we have files --}}
                 <button x-show="preview.length" x-cloak wire:click="uploadImages" wire:loading.attr="disabled"
+                    onclick="setTimeout(() => window.location.reload(), 15000)"
                     class="mt-6 bg-blue-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                     <span wire:loading.remove wire:target="uploadImages"
                         x-text="'Upload Images (' + preview.length + ')'"></span>
