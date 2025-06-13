@@ -1,5 +1,5 @@
 <div>
-    <div>
+    <div >
 
         {{-- Session Messages --}}
         @if (session()->has('message'))
@@ -37,7 +37,7 @@
                 </p>
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 mx-5">
+            <div class=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 mx-5">
                 @foreach ($images as $image)
                     <div
                         class="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-2xl flex flex-col h-full">
@@ -54,7 +54,7 @@
                         </div>
 
                         {{-- Content Section --}}
-                        <div class="p-4 flex flex-col flex-grow">
+                        <div class="p-4 flex flex-col flex-grow rounded-bottom-3">
                             {{-- File Name --}}
                             <p class="text-lg font-semibold truncate text-gray-800 dark:text-white mb-1">
                                 {{ $image->original_name }}
@@ -138,34 +138,9 @@
                         </div>
                     </div>
                 @endforeach
-                {{-- @foreach ($images as $image)
-                    <div
-                        class="bg-white dark:bg-gray-800 rounded-lg shadow-[0_20px_30px_rgba(0,0,0,0.8)] overflow-hidden transform transition duration-300 hover:scale-105">
-                        <img src="{{ $image->image_path }}" alt="{{ $image->original_name }}"
-                            class="w-full h-48 object-cover">
-                        <div class="p-4">
-                            <p class="text-lg font-semibold truncate text-gray-800 dark:text-white">
-                                {{ $image->original_name }}</p>
-                            <div class="border-1 border-white">
-                                <p class="text-lg truncate text-gray-800 dark:text-white">
-                                    {{ $image->image_path }}</p>
-                            </div>    
-
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ round($image->size / 1024 / 1024, 2) }} MB</p>
-                            <button wire:click="deleteImage({{ $image->id }})"
-                                onclick="confirm('Are you sure you want to delete this image?') || event.stopImmediatePropagation()"
-                                class="mt-3 bg-red-500 hover:bg-red-600 text-white text-sm py-1 px-3 rounded-md transition duration-200 ease-in-out">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                @endforeach --}}
+                
             </div>
-            {{-- If you use pagination, add: --}}
-            {{-- <div class="mt-8">
-            {{ $images->links() }}
-        </div> --}}
+           
         @endif
     </div>
 

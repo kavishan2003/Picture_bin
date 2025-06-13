@@ -23,7 +23,7 @@
             </style>
         @endif
     </head>
-    <body class="max-h-screen flex flex-col">
+    <body class="max-h-screen flex flex-col bg-white dark:bg-gray-700">
         @livewire('home')
          @livewireScripts
     </body>

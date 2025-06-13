@@ -5,8 +5,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My | Gallery</title>
+    <title>Image | View</title>
 
+    <!-- Favicon -->
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     
     {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
 
@@ -18,7 +20,7 @@
             </style>
         @endif
 
-    @livewireStyles
+
 </head>
 
  <body class="max-h-screen flex flex-col bg-white dark:bg-gray-700">
@@ -40,10 +42,13 @@
             </div>
         </nav>
     </header>
-        {{ $slot }}
+     
+        @yield('content')
+    
+        
         </div>
 
-        @livewireScripts
+     
     </body>
 
 </html>

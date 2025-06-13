@@ -147,7 +147,7 @@
             {{-- cloud fare --}}
             <input type="hidden" id="cf-turnstile-response" wire:model.defer="turnstileToken">
             <div class="mb-6">
-                <div class="bg-gray-50 text-gray-500 text-center border border-gray-200 rounded-xl p-5 cf-turnstile flex items-center justify-center"
+                <div class=" text-gray-500 text-center  rounded-xl p-5 cf-turnstile flex items-center justify-center"
                     data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}"
                     data-callback="turnstileCallback" data-size="normal">
                     {{-- <p class="text-sm">Please complete the captcha</p> --}}
