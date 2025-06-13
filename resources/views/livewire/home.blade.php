@@ -70,52 +70,61 @@
                 </div>
             @endif
 
-            {{-- Image Uploader Section --}}
-            <div
+            {{-- Image‑upload area (same wrapper you already have) --}}
+            <div x-data="imagePreview($wire)" {{-- pass Livewire into Alpine --}} x-on:paste="handlePaste" x-on:drop.prevent="handleDrop"
+                x-on:dragover.prevent
                 class="bg-white rounded-lg shadow-md p-12 mb-6 text-center border-2 border-dashed border-blue-400 transition-colors duration-200">
-                <h3 class="text-xl font-semibold text-gray-700 mb-4">
-                    Drag & Drop your images here, <br> copy (ctrl + c) & paste (ctrl + v) or
-                    <label for="image-upload-input"
-                        class="text-blue-600 hover:text-blue-800 cursor-pointer underline font-medium">Browse</label>
-                </h3>
-                <input type="file" id="image-upload-input" multiple wire:model="images" accept="image/*"
-                    class="hidden">
 
-                {{-- Display validation errors for the images input --}}
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">
+                    Drag & Drop your images here, <br>
+                    copy (<kbd>Ctrl</kbd>+<kbd>V</kbd>) & paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>) or
+                    <label for="image-upload-input"
+                        class="text-blue-600 hover:text-blue-800 cursor-pointer underline font-medium">
+                        Browse
+                    </label>
+                </h3>
+
+                {{-- The only real file input (Livewire still binds to it) --}}
+                <input x-ref="input" id="image-upload-input" type="file" multiple accept="image/*"
+                    wire:model.defer="images" @change="handleChange" class="hidden">
+
+                {{-- ***CLIENT‑SIDE*** previews – never reconciled by Livewire --}}
+                <div class="mt-6 flex flex-wrap gap-4 justify-center" wire:ignore x-cloak>
+                    <template x-for="(img, idx) in preview" :key="img.url">
+                        <div class="relative border border-gray-300 rounded-lg p-4 text-center w-48 shadow-md">
+                            <img :src="img.url" class="w-full h-32 object-cover rounded-md mb-2">
+                            <span class="block text-sm truncate" x-text="img.name"></span>
+
+                            <button type="button"
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow"
+                                @click="remove(idx)">
+                                &times;
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- UPLOAD button appears only when we have files --}}
+                <button x-show="preview.length" x-cloak wire:click="uploadImages" wire:loading.attr="disabled"
+                    class="mt-6 bg-blue-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove wire:target="uploadImages"
+                        x-text="'Upload Images (' + preview.length + ')'"></span>
+                    <span wire:loading wire:target="uploadImages">Uploading...</span>
+                </button>
+
+                {{-- keep your current @error blocks, unchanged --}}
                 @error('images.*')
                     <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
                 @enderror
                 @error('images')
                     <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
                 @enderror
-
-
-
-                @if (count($images) > 0)
-                    <div class="selected-images mt-6 pt-4 border-t border-gray-200">
-                        <h4 class="text-lg font-semibold text-gray-700 mb-4">Selected Images (Ready for Upload):</h4>
-                        <div class="flex flex-wrap gap-4 justify-center mt-4">
-                            @foreach ($images as $index => $image)
-                                <div class="relative border border-gray-300 rounded-lg p-4 text-center w-48 shadow-md">
-                                    <img src="{{ $image->temporaryUrl() }}" alt="Preview"
-                                        class="w-full h-32 object-cover rounded-md mb-2">
-                                    <span class="text-sm truncate block">{{ $image->getClientOriginalName() }}</span>
-                                    <button type="button" wire:click="removeImage({{ $index }})"
-                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold cursor-pointer shadow">
-                                        &times;
-                                    </button>
-                                </div>
-                            @endforeach
-                        </div>
-                        <button wire:click="uploadImages" wire:loading.attr="disabled"
-                            class="mt-6 bg-blue-600 hover:bg-green-700 cursor-pointer text-white font-bold py-2 px-6 rounded-lg focus:outline-none focus:shadow-outline disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span wire:loading.remove wire:target="uploadImages">Upload Images
-                                ({{ count($images) }})</span>
-                            <span wire:loading wire:target="uploadImages">Uploading...</span>
-                        </button>
-                    </div>
-                @endif
             </div>
+
+
+
+
+
             @if (count($uploadedImages) > 0)
                 <div class="mt-10 w-full max-w-3xl mx-auto">
                     <h4 class="text-lg font-semibold text-gray-700 mb-4 text-center">Uploaded Images & Shareable URLs
@@ -206,4 +215,41 @@
             }
         });
     });
+</script>
+
+<script>
+    function imagePreview() {
+        return {
+            preview: [], // {url, name, size…}
+
+            // generic utility — works for change / paste / drop
+            update(files) {
+                [...files].forEach(file => {
+                    if (!file.type.startsWith('image/')) return
+                    this.preview.push({
+                        url: URL.createObjectURL(file),
+                        name: file.name,
+                        size: file.size
+                    })
+                })
+            },
+
+            // revoke object URLs to avoid leaks
+            remove(i) {
+                URL.revokeObjectURL(this.preview[i].url)
+                this.preview.splice(i, 1)
+            },
+
+            // event handlers
+            handleChange(e) {
+                this.update(e.target.files)
+            },
+            handlePaste(e) {
+                this.update(e.clipboardData.files)
+            },
+            handleDrop(e) {
+                this.update(e.dataTransfer.files)
+            },
+        }
+    }
 </script>
