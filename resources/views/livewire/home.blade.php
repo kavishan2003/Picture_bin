@@ -146,10 +146,10 @@
 
             {{-- cloud fare --}}
             <input type="hidden" id="cf-turnstile-response" wire:model.defer="turnstileToken">
-            <div class="mb-6">
+            <div wire:ignore x-data x-init="window.initTurnstile && initTurnstile($el)" class="my-6 flex justify-center">
                 <div class=" text-gray-500 text-center  rounded-xl p-5 cf-turnstile flex items-center justify-center"
                     data-sitekey="{{ config('services.turnstile.key') }}" data-theme="{{ $theme ?? 'light' }}"
-                    data-callback="turnstileCallback" data-size="normal">
+                    data-callback="onTurnstileSuccess" data-size="normal">
                     {{-- <p class="text-sm">Please complete the captcha</p> --}}
                 </div>
             </div>
@@ -165,10 +165,11 @@
 </script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
-    function turnstileCallback(token) {
+    function onTurnstileSuccess(token) {
         @this.set('turnstileToken', token);
     }
 </script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const fileInput = document.getElementById('image-upload-input');
@@ -192,7 +193,7 @@
                 if (!isValidType) {
                     alert(
                         `File "${file.name}" is not a supported format. Only PNG and JPG are allowed.`
-                        );
+                    );
                     fileInput.value = '';
                     return;
                 }
