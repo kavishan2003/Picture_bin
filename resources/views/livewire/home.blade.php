@@ -71,8 +71,8 @@
             @endif
 
             {{-- Image‑upload area (same wrapper you already have) --}}
-            <div x-data="imagePreview($wire)" {{-- pass Livewire into Alpine --}} x-on:paste="handlePaste" x-on:drop.prevent="handleDrop"
-                x-on:dragover.prevent
+            <div x-data="imagePreview($wire)" x-init="init()" {{-- pass Livewire into Alpine --}} x-on:paste="handlePaste"
+                x-on:drop.prevent="handleDrop" x-on:dragover.prevent
                 class="bg-white rounded-lg shadow-md p-12 mb-6 text-center border-2 border-dashed border-blue-400 transition-colors duration-200">
 
                 <h3 class="text-xl font-semibold text-gray-700 mb-4">
@@ -249,6 +249,18 @@
             },
             handleDrop(e) {
                 this.update(e.dataTransfer.files)
+            },
+            init() {
+                /* Listen for the Livewire event */
+                window.addEventListener('images-uploaded', () => {
+                    /* 1. clear local previews */
+                    this.preview.forEach(p => URL.revokeObjectURL(p.url));
+                    this.preview = [];
+                    this.syncToInput(); // also clears hidden <input>
+
+                    /* 2. full page refresh after 6 s */
+                    setTimeout(() => location.reload(), 6000);
+                });
             },
         }
     }
