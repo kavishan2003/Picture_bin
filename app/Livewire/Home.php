@@ -40,7 +40,7 @@ class Home extends Component
             ['upload_count' => 0]
         );
 
-        if ($attempt->upload_count >= 30) { // limit = 5 uploads/day
+        if ($attempt->upload_count >= 5) { // limit = 5 uploads/day
             session()->flash('error', 'Upload limit reached for today.');
             return;
         }
