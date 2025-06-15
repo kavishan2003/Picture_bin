@@ -23,35 +23,58 @@
     <main class="flex-grow flex items-center justify-center p-4 h-[90vh] bg-repeat ">
 
 
-        <div x-data="{ isDragging: false }" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
+        <div x-data="{
+            isDragging: false,
+            tooManyFiles: false
+        }"
+            @dragover.prevent="
+        isDragging = true;
+        tooManyFiles = $event.dataTransfer.items.length > 1;
+    "
+            @dragleave.prevent="isDragging = false; tooManyFiles = false"
             @drop.prevent="
         isDragging = false;
-        let droppedFiles = Array.from($event.dataTransfer.files);
-        @this.uploadMultiple('images', droppedFiles);
+        if ($event.dataTransfer.files.length === 1) {
+            let droppedFiles = Array.from($event.dataTransfer.files);
+            @this.uploadMultiple('images', droppedFiles);
+            tooManyFiles = false;
+        } else {
+            tooManyFiles = true;
+        }
     "
             @paste.prevent="
         let pastedFiles = Array.from($event.clipboardData.files);
-        if (pastedFiles.length > 0) {
+        if (pastedFiles.length === 1) {
             @this.uploadMultiple('images', pastedFiles);
+            tooManyFiles = false;
+        } else {
+            tooManyFiles = true;
         }
     "
             :class="{ 'border-blue-500 bg-blue-50': isDragging }"
             class="relative bg-white border-1 border-blue-200 rounded-lg shadow-[0_15px_30px_rgba(0,0,0,0.5)] p-10
-           hover:border-green-700 transition-all duration-300 ease-in-out
-           flex flex-col items-center justify-center text-center"
+        hover:border-green-700 transition-all duration-300 ease-in-out
+        flex flex-col items-center justify-center text-center"
             style="min-height: 250px; width:800px;">
 
             <!-- Overlay shown during drag -->
             <div x-show="isDragging" x-transition
                 class="absolute inset-0 z-10 flex items-center justify-center bg-blue-100 bg-opacity-80 rounded-lg pointer-events-none">
-                <div class="text-blue-800 text-2xl font-bold animate-bounce">
-                    📥 Drop your images here
+
+                <!-- ❌ Warning for multiple files -->
+                <div x-show="tooManyFiles" class="text-red-500 text-2xl font-bold animate-bounce">
+                    ❌ Only one image can be dropped at a time
+                </div>
+
+                <!-- 📥 Normal message -->
+                <div x-show="!tooManyFiles" class="text-blue-800 text-2xl font-bold animate-bounce">
+                    📥 Drop your image here
                 </div>
             </div>
 
             <!-- Main drop content -->
             <div class="z-0">
-                <p class="text-gray-600">Drag and drop images here or paste them from your clipboard.</p>
+                {{-- <p class="text-gray-600">Drag and drop images here or paste them from your clipboard.</p> --}}
                 <p class="text-sm text-gray-400 mt-2">Supported formats: JPG, PNG, GIF, etc.</p>
             </div>
             {{-- Session Messages --}}
@@ -84,8 +107,9 @@
             @endif
 
             {{-- Image‑upload area (same wrapper you already have) --}}
-            <div x-data="imagePreview($wire)" x-init="init()" {{-- pass Livewire into Alpine --}} x-on:paste="handlePaste"
-                x-on:drop.prevent="handleDrop" x-on:dragover.prevent
+            <div x-data="imagePreview($wire)" x-init="init()" {{-- pass Livewire into Alpine --}}
+                x-on:paste.prevent="handlePaste($event)" x-on:drop.prevent="handleDrop($event)"
+                x-on:dragover.prevent
                 class="bg-white rounded-lg shadow-md p-12 mb-6 text-center border-2 border-dashed border-blue-400 transition-colors duration-200">
 
                 <h3 class="text-xl font-semibold text-gray-700 mb-4">
@@ -196,8 +220,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const fileInput = document.getElementById('image-upload-input');
+
         const maxFileSizeMB = 2;
-        const maxFilesAllowed = 6;
+        const maxFilesAllowed = 1;
         const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
         fileInput.addEventListener('change', function(event) {
@@ -232,29 +257,47 @@
 </script>
 
 <script>
-    function imagePreview() {
-        return {
-            preview: [], // {url, name, size…}
+    function imagePreview($wire) {
+        const maxFilesAllowed = 1; // 🚦 same limits everywhere
+        const maxFileSizeMB = 2;
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
-            // generic utility — works for change / paste / drop
+        return {
+            preview: [], // each {url,name,size}
+
+            /* ---- centralised gatekeeper ---- */
             update(files) {
+                // reject if this batch would push us over the limit
+                if (this.preview.length + files.length > maxFilesAllowed) {
+                    alert(`Only ${maxFilesAllowed} image can be uploaded.`);
+                    return; // 🚫 no previews, no upload
+                }
+
                 [...files].forEach(file => {
-                    if (!file.type.startsWith('image/')) return
+                    if (!allowedTypes.includes(file.type)) {
+                        alert(`"${file.name}" isn’t PNG or JPG.`);
+                        return;
+                    }
+                    if (file.size > maxFileSizeMB * 1024 * 1024) {
+                        alert(`"${file.name}" exceeds ${maxFileSizeMB} MB.`);
+                        return;
+                    }
+
+                    // all good ➜ show thumbnail
                     this.preview.push({
                         url: URL.createObjectURL(file),
                         name: file.name,
                         size: file.size
-                    })
-                })
+                    });
+                });
             },
 
-            // revoke object URLs to avoid leaks
+            /* keep‑alive & clean‑up helpers --------------------------- */
             remove(i) {
-                URL.revokeObjectURL(this.preview[i].url)
-                this.preview.splice(i, 1)
+                URL.revokeObjectURL(this.preview[i].url);
+                this.preview.splice(i, 1);
             },
 
-            // event handlers
             handleChange(e) {
                 this.update(e.target.files)
             },
@@ -264,16 +307,11 @@
             handleDrop(e) {
                 this.update(e.dataTransfer.files)
             },
+
             init() {
-                /* Listen for the Livewire event */
                 window.addEventListener('images-uploaded', () => {
-                    /* 1. clear local previews */
                     this.preview.forEach(p => URL.revokeObjectURL(p.url));
                     this.preview = [];
-                    this.syncToInput(); // also clears hidden <input>
-
-                    /* 2. full page refresh after 6 s */
-                    setTimeout(() => location.reload(), 6000);
                 });
             },
         }

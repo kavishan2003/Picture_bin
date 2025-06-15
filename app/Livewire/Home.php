@@ -57,10 +57,19 @@ class Home extends Component
             return;
         }
 
+        if(count($this->images)  > 1  ){
+
+            session()->flash('error', '❌ Only one image can uploaded at a time');
+
+        }
+        
+
         try {
             $this->validate(); // Validate all selected images
 
             foreach ($this->images as $image) {
+
+                
                 // Generate a unique filename
                 $filename = md5($image->getClientOriginalName() . time()) . '.' . $image->getClientOriginalExtension();
 
